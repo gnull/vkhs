@@ -60,6 +60,7 @@ import Web.VKHS.Types
 data ClientState = ClientState {
     cl_man :: Client.Manager
   , cl_last_execute :: TimeSpec
+  , cl_cookies :: Cookies
   , cl_minimum_interval_ns :: Integer
   , cl_verbose :: Bool
   }
@@ -74,6 +75,7 @@ defaultClientState GenericOptions{..} = do
   cl_last_execute <- pure (TimeSpec 0 0)
   cl_minimum_interval_ns <- pure (round ((((10::Rational)^(9::Integer)))  / o_max_request_rate_per_sec))
   cl_verbose <- pure (o_verbosity == Debug)
+  let cl_cookies = Cookies l_cookies
   return ClientState{..}
 
 class ToClientState s where
@@ -205,7 +207,8 @@ requestUploadPhoto HRef{..} bs = do
   case Client.parseURI (Text.unpack href) of
     Nothing -> return (Left (ErrorParseURL href "parseURI failed"))
     Just uri -> do
-      r <- requestCreateGet (URL uri) (cookiesCreate ())
+      cookies <- gets $ cl_cookies . toClientState
+      r <- requestCreateGet (URL uri) cookies
       case r of
         Left err -> do
           return $ Left err
@@ -267,17 +270,19 @@ requestExecute ClientRequest{..} = do
 
   modify (modifyClientState (\s -> s{cl_last_execute = clk}))
 
-  liftIO $ do
+  ret <- liftIO $ do
     Pipes.withHTTP req cl_man $ \resp -> do
       resp_body <- PP.foldM (\a b -> return $ BS.append a b) (return BS.empty) return (Client.responseBody resp)
       now <- getCurrentTime
       let (jar', _) = Client.updateCookieJar resp req now jar
       return (ClientResponse resp resp_body, Cookies jar')
+  modify (modifyClientState (\s -> s{cl_cookies = snd ret}))
+  return ret
 
 -- | Download helper
 downloadFileWith :: (MonadClient m s) => URL -> (ByteString -> IO ()) -> m ()
 downloadFileWith url h = do
   (ClientState{..}) <- toClientState <$> get
-  (Right ClientRequest{..}) <- requestCreateGet url (cookiesCreate ())
+  (Right ClientRequest{..}) <- requestCreateGet url cl_cookies
   liftIO $ Pipes.withHTTP req cl_man $ \resp -> do
       PP.foldM (\() a -> h a) (return ()) (const (return ())) (Client.responseBody resp)

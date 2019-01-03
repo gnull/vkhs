@@ -13,6 +13,7 @@ import qualified Data.ByteString.Char8 as ByteString
 import qualified Data.Aeson as Aeson
 import qualified Data.Aeson.Types as Aeson
 import qualified Data.Aeson.Encode.Pretty as Aeson
+import qualified Network.HTTP.Client as Client
 import qualified Network.Shpider.Forms as Shpider
 import qualified Data.List as List
 
@@ -157,6 +158,7 @@ data GenericOptions = GenericOptions {
   -- ^ Initial access token, empty means 'not set'. Has higher precedence than
   -- l_access_token_file
   , l_access_token_file :: FilePath
+  , l_cookies :: Client.CookieJar
   -- ^ Filename to store actual access token, should be used to pass its value
   -- between sessions
   -- , l_api_cache_time :: DiffTime
@@ -177,6 +179,7 @@ defaultOptions = GenericOptions {
   , l_password = ""
   , l_access_token = ""
   , l_access_token_file = ".vkhs-access-token"
+  , l_cookies = mempty
   -- , l_api_cache_time = realToFrac $ secondsToDiffTime 60
   }
 
