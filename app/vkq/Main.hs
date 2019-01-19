@@ -137,6 +137,7 @@ optdesc m =
         <*> fmap (read . tunpack) (tpack <$> strOption (value (show $ o_max_request_rate_per_sec defaultOptions) <> long "req-per-sec" <> metavar "N" <> help "Max number of requests per second"))
         <*> flag True False (long "interactive" <> help "Allow interactive queries")
 
+        <*> pure allAccess
         <*> (AppID <$> strOption (long "appid" <> metavar "APPID" <> value "3128877" <> help "Application ID, defaults to VKHS" ))
         <*> puser
         <*> ppass

@@ -63,7 +63,7 @@ data LoginState = LoginState {
 defaultLoginState :: GenericOptions -> LoginState
 defaultLoginState go@GenericOptions{..} =
   LoginState {
-    ls_rights = allAccess
+    ls_rights = l_rights
   , ls_appid = l_appid
   , ls_formdata = (if not (null l_username) then [("email", l_username)] else [])
                ++ (if not (null l_password) then [("pass", l_password)] else [])

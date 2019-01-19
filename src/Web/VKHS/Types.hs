@@ -147,6 +147,8 @@ data GenericOptions = GenericOptions {
   -- ^ How many requests per second is allowed
   , o_allow_interactive :: Bool
 
+  , l_rights :: [AccessRight]
+  -- ^ Access Rights to be requested at login
   , l_appid :: AppID
   , l_username :: String
   -- ^ VK user name, (typically, an email). Empty string means no value is given
@@ -175,6 +177,7 @@ defaultOptions = GenericOptions {
   , o_max_request_rate_per_sec = 2
   , o_allow_interactive = True
 
+  , l_rights = allAccess
   , l_appid  = AppID "3128877"
   , l_username = ""
   , l_password = ""
